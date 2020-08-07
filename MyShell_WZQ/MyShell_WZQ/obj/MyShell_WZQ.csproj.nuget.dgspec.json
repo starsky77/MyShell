@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\39968\\source\\repos\\MyShell_WZQ\\MyShell_WZQ\\MyShell_WZQ.csproj": {}
+    "C:\\Users\\39968\\Documents\\GitHub\\MyShell\\MyShell_WZQ\\MyShell_WZQ\\MyShell_WZQ.csproj": {}
   },
   "projects": {
-    "C:\\Users\\39968\\source\\repos\\MyShell_WZQ\\MyShell_WZQ\\MyShell_WZQ.csproj": {
+    "C:\\Users\\39968\\Documents\\GitHub\\MyShell\\MyShell_WZQ\\MyShell_WZQ\\MyShell_WZQ.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\39968\\source\\repos\\MyShell_WZQ\\MyShell_WZQ\\MyShell_WZQ.csproj",
+        "projectUniqueName": "C:\\Users\\39968\\Documents\\GitHub\\MyShell\\MyShell_WZQ\\MyShell_WZQ\\MyShell_WZQ.csproj",
         "projectName": "MyShell_WZQ",
-        "projectPath": "C:\\Users\\39968\\source\\repos\\MyShell_WZQ\\MyShell_WZQ\\MyShell_WZQ.csproj",
+        "projectPath": "C:\\Users\\39968\\Documents\\GitHub\\MyShell\\MyShell_WZQ\\MyShell_WZQ\\MyShell_WZQ.csproj",
         "packagesPath": "C:\\Users\\39968\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\39968\\source\\repos\\MyShell_WZQ\\MyShell_WZQ\\obj\\",
+        "outputPath": "C:\\Users\\39968\\Documents\\GitHub\\MyShell\\MyShell_WZQ\\MyShell_WZQ\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"

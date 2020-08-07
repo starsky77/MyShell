@@ -7,7 +7,7 @@ namespace MyShell_WZQ
 {
     public static class ConsoleHelper
     {
-        public static void WriteLine(string printLine,ConsoleColor color)
+        public static void WriteLine(string printLine,ConsoleColor color = ConsoleColor.White)
         {
             ConsoleColor defCol = Console.ForegroundColor;
             Console.ForegroundColor = color;
@@ -17,7 +17,7 @@ namespace MyShell_WZQ
             Console.WriteLine();
         }
 
-        public static string ReadLine(ConsoleColor color)
+        public static string ReadLine(ConsoleColor color = ConsoleColor.White)
         {
             ConsoleColor defaultColor = Console.ForegroundColor;
             Console.ForegroundColor = color;

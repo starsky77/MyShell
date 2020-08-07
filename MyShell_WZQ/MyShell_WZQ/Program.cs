@@ -1,4 +1,5 @@
 ﻿using System;
+using MyShell_WZQ;
 
 namespace Main_Program
 {
@@ -6,7 +7,8 @@ namespace Main_Program
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            ShellConsole shell = new ShellConsole();
+            shell.MainLoop();
         }
     }
 }
