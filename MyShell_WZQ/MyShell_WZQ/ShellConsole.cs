@@ -12,14 +12,17 @@ namespace MyShell_WZQ
 {
     public partial class ShellConsole
     {
-        String PWD = "C:/Users/39968/Documents/GitHub/MyShell/file/";
+        public static String PWD { get; set; }
+        public static String HOME { get; set; }
         List<string> _pathVariables = new List<string>();
         public void MainLoop()
         {
+            PWD = HOME = "C:/Users/39968/Documents/GitHub/MyShell/file/";
             string path = Environment.GetEnvironmentVariable("PATH");
             _pathVariables.AddRange(path.Split(';'));
             while (true)
             {
+                ConsoleHelper.Write(PWD + ">");
                 string line = ConsoleHelper.ReadLine(ConsoleColor.Yellow);
 
                 string[] args = Regex.Split(line, "\\s+(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
@@ -33,7 +36,7 @@ namespace MyShell_WZQ
 
         private void Execute(string[] args)
         {
-            // bool isCommand = false;
+            bool isCommand = false;
             StreamReader builtin_stream = null;
             if (args[0] == null)
             {
@@ -46,22 +49,24 @@ namespace MyShell_WZQ
                     if (args[0] == builtin_str[i])
                     {
                         builtin_stream = builtin_com[i](args);
-                        //isCommand = true;
+                        isCommand = true;
                         break;
                     }
-
                 }
-                //if(!isCommand)
-                //    ConsoleHelper.WriteLine("Error:Non-existent instruction!", ConsoleColor.Red);
+                
+                //当前版本下，同一个指令只能支持重定向和管道中的一个；
+                HandleReDir(args, builtin_stream, isCommand);
+                HandlePipe(args, builtin_stream, isCommand);
 
-                HandleReDir(args, builtin_stream);
-                HandlePipe(args, builtin_stream);
             }
         }
 
 
-        private void HandleReDir(string[] args, StreamReader builtin_stream)
+        private void HandleReDir(string[] args, StreamReader builtin_stream, bool hasBuiltinComm)
         {
+            int checkPipe = Array.FindIndex(args, x => x == "|");
+            if (checkPipe > 0)
+                return;
             int inputReDirIndex, outputReDirIndex;
             string InputFile = null, OutputFile = null;
 
@@ -74,7 +79,7 @@ namespace MyShell_WZQ
                 OutputFile = args[outputReDirIndex + 1];
 
             //处理内部指令重定向
-            if (builtin_stream != null)
+            if (hasBuiltinComm)
             {
                 //内部指令不支持输入重定向，报错
                 if (inputReDirIndex > 0)
@@ -108,12 +113,18 @@ namespace MyShell_WZQ
                 //无重定向，直接输出
                 else
                 {
+                    //无输出的内部指令
+                    if(builtin_stream==null)
+                    {
+                        return;
+                    }
                     ConsoleHelper.WriteLine(builtin_stream.ReadToEnd());
                 }
             }
             //处理外部指令重定向
             else
             {
+
                 StreamReader inputStream = null;
                 if (inputReDirIndex > 0)
                 {
@@ -121,30 +132,47 @@ namespace MyShell_WZQ
                 }
                 if (outputReDirIndex > 0)
                 {
-                    StreamReader output_sw = LaunchOneProcess(args, inputStream, true);
+                    int minIndex;
+                    if (inputReDirIndex < 0)
+                        minIndex = outputReDirIndex;
+                    else
+                        minIndex = outputReDirIndex > inputReDirIndex ? inputReDirIndex : outputReDirIndex;
+                    string []partition = new string[minIndex];
+                    Array.Copy(args, partition, minIndex);
+                    StreamReader output_sw = LaunchOneProcess(partition, inputStream, true);
                     string output_str = output_sw.ReadToEnd();
-                    using(StreamWriter streamWriter=new StreamWriter(PWD+OutputFile))
+                    if (args[outputReDirIndex] == ">")
                     {
-                        streamWriter.WriteLine(output_str);
+                        using (StreamWriter streamWriter = new StreamWriter(PWD + OutputFile, false))
+                        {
+                            streamWriter.WriteLine(output_str);
+                        }
+
+                    }
+                    else if (args[outputReDirIndex] == ">>")
+                    {
+                        using (StreamWriter streamWriter = new StreamWriter(PWD + OutputFile, true))
+                        {
+                            streamWriter.WriteLine(output_str);
+                        }
                     }
                 }
                 else
                 {
-                    //这部分交给管道处理
-                    //LaunchOneProcess(args, inputStream, false);
+                    LaunchOneProcess(args, inputStream, false);
                 }
                
             }
 
         }
 
-        private void HandlePipe(string[] args, StreamReader builtin_stream)
+        private void HandlePipe(string[] args, StreamReader builtin_stream, bool hasBuiltinComm)
         {
             int start = 0;
             int foundIndex;
             string[] partition;
-            StreamReader lastOutput = null;
-            if (builtin_stream != null)
+            StreamReader lastOutput = builtin_stream;
+            if (hasBuiltinComm)
                 start++;
             while (start < args.Length)
             {
@@ -152,7 +180,8 @@ namespace MyShell_WZQ
 
                 if (foundIndex < 0)
                 {
-                    foundIndex = args.Length;
+                    return;
+                    //foundIndex = args.Length;
                 }
 
                 partition = new string[foundIndex - start];
@@ -198,7 +227,10 @@ namespace MyShell_WZQ
                         standardOutput = StartProcess(fullFilePath, args, standardInput, isReturnOutput);
                         isFound = true;
                     }
-                    catch (ExternalException) { }
+                    catch (ExternalException e) 
+                    {
+                        //Console.WriteLine("ERROR message:{0}", e.Message);
+                    }
                 }
                 if (!isFound)
                 {
@@ -234,7 +266,9 @@ namespace MyShell_WZQ
             // push the output from the previous pipe into this process
             if (standardInput != null)
                 process.StandardInput.Write(standardInput.ReadToEnd());
-            process.WaitForExit();// Waits here for the process to exit.
+
+            //这段代码会造成重定向卡住
+            //process.WaitForExit();// Waits here for the process to exit.
 
             if (isReturnOutput)
                 return process.StandardOutput;

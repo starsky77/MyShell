@@ -9,12 +9,17 @@ namespace MyShell_WZQ
     {
         public static void WriteLine(string printLine,ConsoleColor color = ConsoleColor.White)
         {
+            Write(printLine, color);
+
+            Console.WriteLine();
+        }
+        public static void Write(string printLine, ConsoleColor color = ConsoleColor.White)
+        {
             ConsoleColor defCol = Console.ForegroundColor;
             Console.ForegroundColor = color;
             Console.Write(printLine);
             Console.ForegroundColor = defCol;
 
-            Console.WriteLine();
         }
 
         public static string ReadLine(ConsoleColor color = ConsoleColor.White)

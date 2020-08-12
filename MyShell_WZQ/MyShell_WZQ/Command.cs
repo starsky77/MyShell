@@ -6,23 +6,25 @@ using System.Text;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
+using Microsoft.VisualBasic.FileIO;
 
 namespace MyShell_WZQ
 {
     public partial class ShellConsole
     {
 
-        delegate StreamReader builtin_fun(string[] args);
+        public delegate StreamReader builtin_fun(string[] args);
 
 
-        private static string[] builtin_str =
+        public static string[] builtin_str =
         {
             "bg","cd","clr","dir","echo" ,"exec","exit",
             "environ","fg","help","jobs" ,"pwd" ,"quit",
             "set","shift" ,"test","time" ,"umask","unset"
         };
 
-        private static builtin_fun[] builtin_com =
+        public static builtin_fun[] builtin_com =
         {
             Command.bg, Command.cd, Command.clr,Command.dir,Command.echo,
             Command.exec,Command.exit,Command.environ,Command.fg,Command.help,
@@ -30,7 +32,7 @@ namespace MyShell_WZQ
             Command.test,Command.time,Command.umask,Command.unset
         };
 
-        private static int builtin_num()
+        public static int builtin_num()
         {
             return builtin_str.Length;
         }
@@ -53,7 +55,47 @@ namespace MyShell_WZQ
 
         public static StreamReader cd(string[] args)
         {
-            return null;
+            if (args[0] != "cd")
+            {
+                ConsoleHelper.WriteLine("ERROR:The comand is not cd", ConsoleColor.Red);
+                return null;
+            }
+            else
+            {
+                if(args.Length==1)
+                {
+                    ShellConsole.PWD = ShellConsole.HOME;
+                }
+                else if(args.Length>2)
+                {
+                    ConsoleHelper.WriteLine("ERROR:The comand has too many args!", ConsoleColor.Red);
+                }
+                else
+                {
+                    string filePath = null;
+                    if (args[1] == ".") { }
+                    else if(args[1]=="..")
+                    {
+                        //目前在处理..时存在问题
+                        //filePath = Regex.Replace(ShellConsole.PWD, "/*/&", "/");
+                    }
+                    else
+                    {
+                        filePath = ShellConsole.PWD + args[1] + "/";
+                    }
+                    
+                    if(!Directory.Exists(filePath))
+                    {
+                        ConsoleHelper.WriteLine("ERROR:The Directory doesn't exist!", ConsoleColor.Red);
+                    }
+                    else
+                    {
+                        ShellConsole.PWD = filePath;
+                    }
+
+                }
+                return null;
+            }
         }
 
         public static StreamReader clr(string[] args)
@@ -72,25 +114,88 @@ namespace MyShell_WZQ
 
         public static StreamReader dir(string[] args)
         {
-            StreamReader result = null;
-
-            return result;
+            if (args[0] != "dir")
+            {
+                ConsoleHelper.WriteLine("ERROR:The comand is not dir", ConsoleColor.Red);
+                return null;
+            }
+            else
+            {
+                string result_str = "";
+                var files = Directory.GetFiles(ShellConsole.PWD);
+                foreach(var file in files)
+                {
+                    result_str += file;
+                    result_str += "\n";
+                }
+                return convert_str_stream(result_str);
+            }
+            
         }
 
         public static StreamReader echo(string[] args)
         {
-            StreamReader result = null;
-
-            return result;
+            if (args[0] != "echo")
+            {
+                ConsoleHelper.WriteLine("ERROR:The comand is not echo", ConsoleColor.Red);
+                return null;
+            }
+            else
+            {
+                string[] output = new string[args.Length - 1];
+                Array.Copy(args, 1, output, 0, args.Length - 1);
+                string result_str = string.Join(" ", output);
+                return convert_str_stream(result_str);
+            }
+            
         }
 
         public static StreamReader exec(string[] args)
         {
-            return null;
+            if (args[0] != "exec")
+            {
+                ConsoleHelper.WriteLine("ERROR:The comand is not exec", ConsoleColor.Red);
+                return null;
+            }
+            else
+            {
+                string[] newCommand = new string[args.Length - 1];
+                Array.Copy(args, 1, newCommand, 0, args.Length - 1);
+
+                for (int i = 0; i < ShellConsole.builtin_num(); i++)
+                {
+                    if (newCommand[0] == ShellConsole.builtin_str[i])
+                    {
+                        StreamReader builtin_stream = ShellConsole.builtin_com[i](newCommand);
+                        return builtin_stream;
+                    }
+                }
+                return null;
+            }
         }
 
         public static StreamReader exit(string[] args)
         {
+            if (args[0] != "exit")
+            {
+                ConsoleHelper.WriteLine("ERROR:The comand is not exit", ConsoleColor.Red);
+                return null;
+            }
+            else
+            {
+                if(args.Length==1)
+                {
+                    Environment.Exit(0);
+                }
+                else if(args.Length>2)
+                {
+                    ConsoleHelper.WriteLine("ERROR:The comand has too many args", ConsoleColor.Red);
+                }
+                else
+                {
+                    Environment.Exit(Int32.Parse(args[1]));
+                }
+            }
             return null;
         }
 
@@ -135,9 +240,18 @@ namespace MyShell_WZQ
 
         public static StreamReader pwd(string[] args)
         {
-            StreamReader result = null;
-
-            return result;
+            if (args[0] != "pwd")
+            {
+                ConsoleHelper.WriteLine("ERROR:The comand is not pwd", ConsoleColor.Red);
+                return null;
+            }
+            else
+            {
+                StreamReader result = null;
+                result = convert_str_stream(ShellConsole.PWD);
+                return result;
+            }
+            
         }
 
         public static StreamReader quit(string[] args)
