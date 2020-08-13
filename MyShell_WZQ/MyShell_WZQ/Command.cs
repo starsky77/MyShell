@@ -76,7 +76,7 @@ namespace MyShell_WZQ
                     if (args[1] == ".") { }
                     else if(args[1]=="..")
                     {
-                        //目前在处理..时存在问题
+                        //目前在处理..时存在显示问题
                         //filePath = Regex.Replace(ShellConsole.PWD, "/*/&", "/");
                     }
                     else
@@ -142,6 +142,7 @@ namespace MyShell_WZQ
             }
             else
             {
+                //echo 存在bug，会将重定向符号、管道也跟随输出
                 string[] output = new string[args.Length - 1];
                 Array.Copy(args, 1, output, 0, args.Length - 1);
                 string result_str = string.Join(" ", output);
@@ -149,7 +150,8 @@ namespace MyShell_WZQ
             }
             
         }
-
+        
+        //exec目前无法处理外部指令
         public static StreamReader exec(string[] args)
         {
             if (args[0] != "exec")
@@ -217,7 +219,6 @@ namespace MyShell_WZQ
                     str += tmp;
                 }
                 return convert_str_stream(str);
-               
             }
         }
 
@@ -235,7 +236,28 @@ namespace MyShell_WZQ
 
         public static StreamReader jobs(string[] args)
         {
-            return null;
+            if (args[0] != "jobs")
+            {
+                ConsoleHelper.WriteLine("ERROR:The comand is not jobs", ConsoleColor.Red);
+                return null;
+            }
+            else
+            {
+                string result_str = "ID   ProcessName   MainWindowTitle   process.StartTime \n";
+                Process[] processes = Process.GetProcesses();
+                foreach(Process process in processes)
+                {
+                    try
+                    {
+                        result_str += (process.Id + " " + process.ProcessName + " " + process.MainWindowTitle + " " + process.StartTime + "\n");
+                    }
+                    catch(Exception e)
+                    {
+                        result_str += e.Message;
+                    }
+                }
+                return convert_str_stream(result_str);
+            }
         }
 
         public static StreamReader pwd(string[] args)

@@ -17,7 +17,7 @@ namespace MyShell_WZQ
         List<string> _pathVariables = new List<string>();
         public void MainLoop()
         {
-            PWD = HOME = "C:/Users/39968/Documents/GitHub/MyShell/file/";
+            PWD = HOME = "./";
             string path = Environment.GetEnvironmentVariable("PATH");
             _pathVariables.AddRange(path.Split(';'));
             while (true)
@@ -258,6 +258,7 @@ namespace MyShell_WZQ
                 process.StartInfo.ArgumentList.Add(arg);
             }
             process.StartInfo.UseShellExecute = false;
+            process.StartInfo.RedirectStandardInput = false;
             if (isReturnOutput)
                 process.StartInfo.RedirectStandardOutput = true;
             if (standardInput != null)
@@ -267,11 +268,10 @@ namespace MyShell_WZQ
             if (standardInput != null)
                 process.StandardInput.Write(standardInput.ReadToEnd());
 
-            //这段代码会造成重定向卡住
-            //process.WaitForExit();// Waits here for the process to exit.
-
             if (isReturnOutput)
                 return process.StandardOutput;
+
+            process.WaitForExit();// Waits here for the process to exit.
             return null;
         }
 
