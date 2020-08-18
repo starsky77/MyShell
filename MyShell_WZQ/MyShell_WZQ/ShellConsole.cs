@@ -5,8 +5,8 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Linq;
 using System.Runtime.InteropServices;
-
-
+using System.ComponentModel;
+using System.Data;
 
 namespace MyShell_WZQ
 {
@@ -14,6 +14,10 @@ namespace MyShell_WZQ
     {
         public static String PWD { get; set; }
         public static String HOME { get; set; }
+
+        //存储所有临时变量
+        public static Dictionary<string, string> variables = new Dictionary<string, string>();
+
         List<string> _pathVariables = new List<string>();
         public void MainLoop()
         {
@@ -34,34 +38,190 @@ namespace MyShell_WZQ
             }
         }
 
+
+        public (StreamReader, bool) handledBuiltin(string[] args)
+        {
+            bool isBuiltinCommand = false;
+            StreamReader builtin_stream = null;
+            for (int i = 0; i < builtin_num(); i++)
+            {
+                if (args[0] == builtin_str[i])
+                {
+                    builtin_stream = builtin_com[i](args);
+                    isBuiltinCommand = true;
+                    break;
+                }
+            }
+            return (builtin_stream, isBuiltinCommand);
+        }
+
         private void Execute(string[] args)
         {
-            bool isCommand = false;
-            StreamReader builtin_stream = null;
             if (args[0] == null)
             {
                 ConsoleHelper.WriteLine("Error:No command name!", ConsoleColor.Red);
             }
             else
             {
-                for (int i = 0; i < builtin_num(); i++)
+                HandleQuote(args);
+                //处理批量指令
+                if (args[0] == "myshell")
                 {
-                    if (args[0] == builtin_str[i])
-                    {
-                        builtin_stream = builtin_com[i](args);
-                        isCommand = true;
-                        break;
-                    }
+                    ExecuteFile(args[1], args);
                 }
-                
-                //当前版本下，同一个指令只能支持重定向和管道中的一个；
-                HandleReDir(args, builtin_stream, isCommand);
-                HandlePipe(args, builtin_stream, isCommand);
+                else
+                {
+                    //当前版本下，同一个指令只能使用重定向和管道中的一个；
+                    HandleReDir(args);
+                    HandlePipe(args);
+                }
 
             }
         }
 
+        private void ExecuteFile(string filePath, string[] parameter)
+        {
+            StreamReader inputStream = new StreamReader(PWD + filePath);
+            string line = inputStream.ReadLine();
+            HandleArgs(parameter);
+            while (line != null)
+            {
+                line = inputStream.ReadLine();
+                string[] args = Regex.Split(line, "\\s+(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
+                for (int i = 0; i < args.Length; i++)
+                {
+                    args[i] = args[i].Trim('\"');
+                }
+                Execute(args);
+            }
+            ClearArgs(parameter);
+        }
 
+        //将所有带有$的字符改为其对应数值
+        private void HandleQuote(string[] args)
+        {
+            for (int i = 0; i < args.Length; i++)
+            {
+                //替换键值对
+                if(args[i][0]=='$')
+                {
+                    string key = args[i].Replace("$", string.Empty);
+                    args[i] = variables[key];
+                }
+            }
+        }
+
+        private void HandleArgs(string[] parameter)
+        {
+            for (int i = 1; i < parameter.Length - 1; i++)
+            {
+                variables.Add(i.ToString(), parameter[i + 1]);
+            }
+        }
+
+        private void ClearArgs(string[] parameter)
+        {
+            for (int i = 1; i < parameter.Length - 1; i++)
+            {
+                if (!variables.ContainsKey(i.ToString()))
+                {
+                    break;
+                }
+                variables.Remove(i.ToString());
+            }
+        }
+
+
+        //NOTICE：由于内部指令不支持输入重定向，输入重定向符不会对指令产生任何影响；
+        private void HandleReDir(string[] args)
+        {
+            //检测重定向符号并找到输入输出的文件名
+            int checkPipe = Array.FindIndex(args, x => x == "|");
+            if (checkPipe > 0)
+                return;
+            int inputReDirIndex, outputReDirIndex;
+            string InputFile = null, OutputFile = null;
+
+            inputReDirIndex = Array.FindIndex(args, x => (x == "<"));
+            if (inputReDirIndex > 0)
+                InputFile = args[inputReDirIndex + 1];
+
+            outputReDirIndex = Array.FindIndex(args, x => (x == ">" || x == ">>"));
+            if (outputReDirIndex > 0)
+                OutputFile = args[outputReDirIndex + 1];
+
+
+            StreamReader inputStream = null;
+            //输入重定向，从指定文件读取
+            if (inputReDirIndex > 0)
+            {
+                inputStream = new StreamReader(PWD + InputFile);
+            }
+            //输出重定向
+            if (outputReDirIndex > 0)
+            {
+                //找到最靠前的重定向符位置
+                int minIndex;
+                if (inputReDirIndex < 0)
+                    minIndex = outputReDirIndex;
+                else
+                    minIndex = outputReDirIndex > inputReDirIndex ? inputReDirIndex : outputReDirIndex;
+
+                //分离指令的重定向部分，将剩余部分传入内部指令
+                string[] partition = new string[minIndex];
+                Array.Copy(args, partition, minIndex);
+                StreamReader output_sw = null;
+                bool hasBulitin = false;
+                (output_sw, hasBulitin) = handledBuiltin(partition);
+                if (!hasBulitin)
+                {
+                    //不是内部指令，进行外部指令查询
+                    output_sw = LaunchOneProcess(partition, inputStream, true);
+                }
+                string output_str = output_sw.ReadToEnd();
+                if (args[outputReDirIndex] == ">")
+                {
+                    //覆盖文件
+                    using (StreamWriter streamWriter = new StreamWriter(PWD + OutputFile, false))
+                    {
+                        streamWriter.WriteLine(output_str);
+                    }
+
+                }
+                else if (args[outputReDirIndex] == ">>")
+                {
+                    //追加文件
+                    using (StreamWriter streamWriter = new StreamWriter(PWD + OutputFile, true))
+                    {
+                        streamWriter.WriteLine(output_str);
+                    }
+                }
+            }
+            else
+            {
+                //无重定向符号，标准输入输出
+                StreamReader output_sw = null;
+                bool hasBulitin = false;
+                (output_sw, hasBulitin) = handledBuiltin(args);
+                if (!hasBulitin)
+                {
+                    LaunchOneProcess(args, inputStream, false);
+                }
+                else
+                {
+                    //没有输出的指令
+                    if (output_sw == null)
+                    {
+                        return;
+                    }
+                    //有输出的指令
+                    ConsoleHelper.WriteLine(output_sw.ReadToEnd());
+                }
+
+            }
+        }
+
+        //old vision
         private void HandleReDir(string[] args, StreamReader builtin_stream, bool hasBuiltinComm)
         {
             int checkPipe = Array.FindIndex(args, x => x == "|");
@@ -114,7 +274,7 @@ namespace MyShell_WZQ
                 else
                 {
                     //无输出的内部指令
-                    if(builtin_stream==null)
+                    if (builtin_stream == null)
                     {
                         return;
                     }
@@ -137,7 +297,7 @@ namespace MyShell_WZQ
                         minIndex = outputReDirIndex;
                     else
                         minIndex = outputReDirIndex > inputReDirIndex ? inputReDirIndex : outputReDirIndex;
-                    string []partition = new string[minIndex];
+                    string[] partition = new string[minIndex];
                     Array.Copy(args, partition, minIndex);
                     StreamReader output_sw = LaunchOneProcess(partition, inputStream, true);
                     string output_str = output_sw.ReadToEnd();
@@ -161,31 +321,43 @@ namespace MyShell_WZQ
                 {
                     LaunchOneProcess(args, inputStream, false);
                 }
-               
+
             }
 
         }
 
-        private void HandlePipe(string[] args, StreamReader builtin_stream, bool hasBuiltinComm)
+        //由于内部指令不支持输入重定向，因此对于管道操作，如果存在内部指令则必须放在第一位
+        private void HandlePipe(string[] args)
         {
             int start = 0;
             int foundIndex;
             string[] partition;
-            StreamReader lastOutput = builtin_stream;
-            if (hasBuiltinComm)
-                start++;
+            StreamReader lastOutput = null;
+            bool hasBulitin = false;
+
+            foundIndex = Array.FindIndex(args, start, x => x == "|");
+            if (foundIndex < 0)
+            {
+                return;
+            }
+            partition = new string[foundIndex - start];
+            Array.Copy(args, start, partition, 0, foundIndex - start);
+            (lastOutput, hasBulitin) = handledBuiltin(partition);
+            if (hasBulitin)
+            {
+                start = foundIndex + 1;
+            }
             while (start < args.Length)
             {
                 foundIndex = Array.FindIndex(args, start, x => x == "|");
 
                 if (foundIndex < 0)
                 {
-                    return;
-                    //foundIndex = args.Length;
+                    foundIndex = args.Length;
                 }
 
                 partition = new string[foundIndex - start];
-                Array.Copy(args, partition, foundIndex - start);
+                Array.Copy(args, start, partition, 0, foundIndex - start);
 
                 bool isReturnOutput = true;
                 if (foundIndex >= args.Length)
@@ -227,7 +399,7 @@ namespace MyShell_WZQ
                         standardOutput = StartProcess(fullFilePath, args, standardInput, isReturnOutput);
                         isFound = true;
                     }
-                    catch (ExternalException e) 
+                    catch (ExternalException e)
                     {
                         //Console.WriteLine("ERROR message:{0}", e.Message);
                     }

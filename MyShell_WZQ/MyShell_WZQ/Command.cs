@@ -62,11 +62,11 @@ namespace MyShell_WZQ
             }
             else
             {
-                if(args.Length==1)
+                if (args.Length == 1)
                 {
                     ShellConsole.PWD = ShellConsole.HOME;
                 }
-                else if(args.Length>2)
+                else if (args.Length > 2)
                 {
                     ConsoleHelper.WriteLine("ERROR:The comand has too many args!", ConsoleColor.Red);
                 }
@@ -74,7 +74,7 @@ namespace MyShell_WZQ
                 {
                     string filePath = null;
                     if (args[1] == ".") { }
-                    else if(args[1]=="..")
+                    else if (args[1] == "..")
                     {
                         //目前在处理..时存在显示问题
                         //filePath = Regex.Replace(ShellConsole.PWD, "/*/&", "/");
@@ -83,8 +83,8 @@ namespace MyShell_WZQ
                     {
                         filePath = ShellConsole.PWD + args[1] + "/";
                     }
-                    
-                    if(!Directory.Exists(filePath))
+
+                    if (!Directory.Exists(filePath))
                     {
                         ConsoleHelper.WriteLine("ERROR:The Directory doesn't exist!", ConsoleColor.Red);
                     }
@@ -123,14 +123,14 @@ namespace MyShell_WZQ
             {
                 string result_str = "";
                 var files = Directory.GetFiles(ShellConsole.PWD);
-                foreach(var file in files)
+                foreach (var file in files)
                 {
                     result_str += file;
                     result_str += "\n";
                 }
                 return convert_str_stream(result_str);
             }
-            
+
         }
 
         public static StreamReader echo(string[] args)
@@ -148,9 +148,9 @@ namespace MyShell_WZQ
                 string result_str = string.Join(" ", output);
                 return convert_str_stream(result_str);
             }
-            
+
         }
-        
+
         //exec目前无法处理外部指令
         public static StreamReader exec(string[] args)
         {
@@ -185,11 +185,11 @@ namespace MyShell_WZQ
             }
             else
             {
-                if(args.Length==1)
+                if (args.Length == 1)
                 {
                     Environment.Exit(0);
                 }
-                else if(args.Length>2)
+                else if (args.Length > 2)
                 {
                     ConsoleHelper.WriteLine("ERROR:The comand has too many args", ConsoleColor.Red);
                 }
@@ -245,13 +245,13 @@ namespace MyShell_WZQ
             {
                 string result_str = "ID   ProcessName   MainWindowTitle   process.StartTime \n";
                 Process[] processes = Process.GetProcesses();
-                foreach(Process process in processes)
+                foreach (Process process in processes)
                 {
                     try
                     {
                         result_str += (process.Id + " " + process.ProcessName + " " + process.MainWindowTitle + " " + process.StartTime + "\n");
                     }
-                    catch(Exception e)
+                    catch (Exception e)
                     {
                         result_str += e.Message;
                     }
@@ -273,7 +273,7 @@ namespace MyShell_WZQ
                 result = convert_str_stream(ShellConsole.PWD);
                 return result;
             }
-            
+
         }
 
         public static StreamReader quit(string[] args)
@@ -291,13 +291,79 @@ namespace MyShell_WZQ
             }
         }
 
+        //语法格式:set X = Y 或 set X
         public static StreamReader set(string[] args)
         {
+            bool success=false;
+            if (args[0] != "set")
+            {
+                ConsoleHelper.WriteLine("ERROR:The comand is not set", ConsoleColor.Red);
+                return null;
+            }
+            else
+            {
+                if (args.Length == 1) { }
+                else if (args.Length == 2)
+                {
+
+                    success = ShellConsole.variables.TryAdd(args[1], "");
+                }
+                else
+                {
+                    int label = Array.FindIndex(args, x => x == "=");
+                    if (label < 0)
+                    {
+                        ConsoleHelper.WriteLine("[ERROR]:Input does not match the format!", ConsoleColor.Red);
+                    }
+                    else
+                    {
+                        string Value="";
+                        for (int i = label; i < args.Length; i++)
+                        {
+                            Value += args[i];
+                        }
+                        success = ShellConsole.variables.TryAdd(args[1], Value);
+                    }
+                }
+            }
+            if(!success)
+            {
+
+                ConsoleHelper.WriteLine("[ERROR]:The variable " + args[1] + " already exists!", ConsoleColor.Red);
+            }
             return null;
         }
 
         public static StreamReader shift(string[] args)
         {
+            if (args[0] != "shift")
+            {
+                ConsoleHelper.WriteLine("ERROR:The comand is not shift", ConsoleColor.Red);
+                return null;
+            }
+            else
+            {
+                bool fir = true;
+                int lasti = 0;
+                int i;
+                for (i = 1; ShellConsole.variables.ContainsKey(i.ToString()); i++)
+                {
+                    if (fir)
+                    {
+                        fir = false;
+                    }
+                    else
+                    {
+                        ShellConsole.variables[lasti.ToString()] = ShellConsole.variables[i.ToString()];
+                    }
+                    lasti = i;
+                }
+                if(!fir)
+                {
+                    ShellConsole.variables.Remove(i.ToString());
+                }
+            }
+
             return null;
         }
 
@@ -328,6 +394,29 @@ namespace MyShell_WZQ
 
         public static StreamReader unset(string[] args)
         {
+            if (args[0] != "unset")
+            {
+                ConsoleHelper.WriteLine("ERROR:The comand is not unset", ConsoleColor.Red);
+                return null;
+            }
+            else
+            {
+                if(args.Length!=2)
+                {
+                    ConsoleHelper.WriteLine("[ERROR]:Input does not match the format!", ConsoleColor.Red);
+                }
+                else
+                {
+                    if(!ShellConsole.variables.ContainsKey(args[1]))
+                    {
+                        ConsoleHelper.WriteLine("[ERROR]:The variable " + args[1] + " doesn't exist!", ConsoleColor.Red);
+                    }
+                    else
+                    {
+                        ShellConsole.variables.Remove(args[1]);
+                    }
+                }
+            }
             return null;
         }
     }
