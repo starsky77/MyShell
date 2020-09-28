@@ -32,7 +32,7 @@
 
 ### 1.3 使用安装说明
 
-程序已经直接输出为Linux-x64版本下的独立程序，不需要安装任何其他配置，在Linux环境下，只需要保证"Clib.so","umask.so","help","MyShell_WZQ","MyShell_WZQ.pdb"处于同一目录下，并通过Linux的终端输入可执行文件MyShell_WZQ即可启动MiniShell。
+程序已经直接输出为Linux-x64版本下的独立程序，不需要安装任何其他配置，在Linux环境下，只需要保证"Clib.so","umask.so","help","MyShell_WZQ","MyShell_WZQ.pdb"处于同一目录下，并通过Linux的终端输入可执行文件MyShell_WZQ即可启动MiniShell。（这一独立程序尚未push到github仓库内，需要重新编译生成）
 
 如果需要编译源代码的话，则需要提前安装 .net core 3.1 的配置。
 
@@ -843,84 +843,84 @@ else
 
 1. 启动：输入可执行文件`MyShell`后，在Linux环境下启动该程序：并显示命令提示符（当前路径名称）
 
-![test1](C:/Users/wzq/Documents/GitHub/MyShell/img/test1.png)
+![test1](img/test1.png)
 
 
 2. 单一外部指令效果：以`ls`,`ps`,`file`为例
 
-![test1](C:/Users/wzq/Documents/GitHub/MyShell/img/test2.png)
+![test1](test2.png)
 
 
 3. 单一内部指令：cd指令
 
 下图分别测试了跳转至父目录，跳转至当前目录（不跳转），跳转至特定目录，跳转至不存在的目录的效果：
 
-![test1](C:/Users/wzq/Documents/GitHub/MyShell/img/test7.png)
+![test1](img/test7.png)
 
 4. 单一内部指令：echo指令
 
 echo 后的参数如果由""包裹起来，则其中的空格全部不会忽略；
 若没有被""包裹起来，则所有多余的空格会被清除
 
-![test1](C:/Users/wzq/Documents/GitHub/MyShell/img/test8.png)
+![test1](img/test8.png)
 
 5. 单一内部指令：set与unset指令
 
 此处展示了设置变量，引用变量并显示，清除变量，显示不存在的变量的情况
 
-![test1](C:/Users/wzq/Documents/GitHub/MyShell/img/test9.png)
+![test1](img/test9.png)
 
 6. 单一内部指令：clr指令
 
 调用clr指令前：
 
-![test1](C:/Users/wzq/Documents/GitHub/MyShell/img/test10.png)
+![test1](img/test10.png)
 
 调用clr指令后：
 
-![test1](C:/Users/wzq/Documents/GitHub/MyShell/img/test11.png)
+![test1](img/test11.png)
 
 7. 单一内部指令：time指令
 
-![test1](C:/Users/wzq/Documents/GitHub/MyShell/img/test12.png)
+![test1](img/test12.png)
 
 8. 单一内部指令：dir指令
 
 分别展示无参数的dir指令直接输出本目录下的文件内容，以及由参数的情况下输出特定文件夹内的文件内容
 
-![test1](C:/Users/wzq/Documents/GitHub/MyShell/img/test14.png)
+![test1](img/test14.png)
 
 9. 单一内部指令：help指令以及通过more命令过滤
 
 在可执行文件所在目录下执行help指令，将直接显示全部的用户手册
-![test1](C:/Users/wzq/Documents/GitHub/MyShell/img/test15.png)
+![test1](img/test15.png)
 
 同样可以通过more命令来过滤help用户手册
-![test1](C:/Users/wzq/Documents/GitHub/MyShell/img/test16.png)
+![test1](img/test16.png)
 
 10. 单一内部指令：pwd指令
 
-![test1](C:/Users/wzq/Documents/GitHub/MyShell/img/test17.png)
+![test1](img/test17.png)
 
 11. 批量读取指令并执行
 
 提前准备一段脚本指令：Command1
 
-![test1](C:/Users/wzq/Documents/GitHub/MyShell/img/test18.png)
+![test1](img/test18.png)
 
 执行该脚本文件，输出直接显示在终端中
 
-![test1](C:/Users/wzq/Documents/GitHub/MyShell/img/test19.png)
+![test1](img/test19.png)
 
 12. 批量读取指令并传入参数，且使用shift指令
 
 准备如下的脚本文件：
 
-![test1](C:/Users/wzq/Documents/GitHub/MyShell/img/test20.png)
+![test1](img/test20.png)
 
 执行脚本文件并依次传入参数
 
-![test1](C:/Users/wzq/Documents/GitHub/MyShell/img/test21.png)
+![test1](img/test21.png)
 
 可以看到在shift指令的作用下，即使每次输出的是\$1，也依然输出了后方的参数
 
@@ -928,47 +928,47 @@ echo 后的参数如果由""包裹起来，则其中的空格全部不会忽略�
 
 输出重定向>：以ps指令输出重定向为例
 
-![test1](C:/Users/wzq/Documents/GitHub/MyShell/img/test3.png)
+![test1](img/test3.png)
 
 输出后检查当前文件夹，找到对应的输出文件
 
-![test1](C:/Users/wzq/Documents/GitHub/MyShell/img/test4.png)
+![test1](img/test4.png)
 
 输出重定向>>：再次执行上方指令
 
-![test1](C:/Users/wzq/Documents/GitHub/MyShell/img/test6.png)
+![test1](img/test6.png)
 
 可以发现，原先的文件下方多出了新内容，而不是被覆盖掉：
 
-![test1](C:/Users/wzq/Documents/GitHub/MyShell/img/test5.png)
+![test1](img/test5.png)
 
 输入重定向<:准备一个输入文件
 
-![test1](C:/Users/wzq/Documents/GitHub/MyShell/img/test24.png)
+![test1](img/test24.png)
 
 通过grep指令加输入重定向，查询其中带有echo的部分
 
-![test1](C:/Users/wzq/Documents/GitHub/MyShell/img/test25.png)
+![test1](img/test25.png)
 
 程序功能正常
 
 
 14. 内部指令与重定向：以echo指令为例，演示内部指令的输出重定向：
 
-![test1](C:/Users/wzq/Documents/GitHub/MyShell/img/test22.png)
+![test1](img/test22.png)
 
 检查输出文件的内容，发现echo指令的内容被成功重定向
 
-![test1](C:/Users/wzq/Documents/GitHub/MyShell/img/test23.png)
+![test1](img/test23.png)
 
 15. 管道指令
 
 通过以下指令测试管道的执行效果：
 
-![test1](C:/Users/wzq/Documents/GitHub/MyShell/img/test26.png)
+![test1](img/test26.png)
 
 其中command1文件的内容如下：
 
-![test1](C:/Users/wzq/Documents/GitHub/MyShell/img/test24.png)
+![test1](img/test24.png)
 
 可以看到cat指令的结果确实传给了grep指令的输入，说明管道指令工作正常。
