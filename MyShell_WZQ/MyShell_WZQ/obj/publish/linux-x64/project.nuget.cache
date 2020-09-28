@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "ItYWnlfK34UEr6KIDBdtdrbhbibWahPv8ke6HoXcGxEu1YFOlfprkZhdht0BN09ZTHeE1a5z1FpxjQwa0YnT7w==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\wzq\\Documents\\GitHub\\MyShell\\MyShell_WZQ\\MyShell_WZQ\\MyShell_WZQ.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\wzq\\.nuget\\packages\\microsoft.netcore.app.runtime.linux-x64\\3.1.7\\microsoft.netcore.app.runtime.linux-x64.3.1.7.nupkg.sha512",
+    "C:\\Users\\wzq\\.nuget\\packages\\microsoft.aspnetcore.app.runtime.linux-x64\\3.1.7\\microsoft.aspnetcore.app.runtime.linux-x64.3.1.7.nupkg.sha512",
+    "C:\\Users\\wzq\\.nuget\\packages\\microsoft.netcore.app.host.linux-x64\\3.1.7\\microsoft.netcore.app.host.linux-x64.3.1.7.nupkg.sha512"
+  ],
+  "logs": []
+}
